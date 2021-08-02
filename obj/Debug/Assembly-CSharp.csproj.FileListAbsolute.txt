@@ -1,0 +1,1 @@
+C:\_Project\UnityProject\PointPos\obj\Debug\Assembly-CSharp.csprojResolveAssemblyReference.cache
