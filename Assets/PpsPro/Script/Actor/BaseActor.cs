@@ -10,12 +10,13 @@ public class BaseActor
     private Vector3 targetPos;
 
 
+    public Transform _Transform { get { return transform; } }
     public Vector3 Position { get { return transform.position; } }
     public void Load()
     {
-        model = GameObject.Instantiate(Resources.Load("ACube")) as GameObject;
+        model = GameObject.Instantiate(Resources.Load("Role")) as GameObject;
         transform = model.transform;
-        transform.position = new Vector3(0, .5f, 0);
+        transform.position = new Vector3(5, .5f, 5);
         targetPos = transform.position;
     }
 

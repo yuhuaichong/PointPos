@@ -12,8 +12,8 @@ namespace Assets.PpsPro
         public bool MoveTo()
         {
             if (Path.Count == 0) return false;
-            Item.position = Vector3.MoveTowards(Item.position, Path[0].Center, Time.deltaTime * 2);
-            if (Vector3.Distance(Item.position, Path[0].Center) < .2f)
+            Item.position = Vector3.MoveTowards(Item.position, Path[0].Position, Time.deltaTime * 5);
+            if (Vector3.Distance(Item.position, Path[0].Position) < .2f)
             {
                 Path.RemoveAt(0);
             }

@@ -10,19 +10,21 @@ namespace Assets.PpsPro
         private int y;                                  //y点
         private int id;                                 //id
         private int groupId;                            //组ID
-        private Vector2Int center;                         //中心点   
+        private Vector2Int center;                      //中心点   
         private float radius;                           //半径
         private bool isTurn;                            //是转角位
         private EGridState gridState;                   //格子状态
-        public GroudUnit gridCube;                       //格子组件
+        public GroudUnit gridCube;                      //格子组件
         private List<BaseGrid> intersList;
         private List<BaseGrid> rectList;
         //private List<bool> rectState;
+        private Vector3 position;
 
 
         #region 显示相关
 
         private string stateImgeName;
+        public GameObject model;
         public GameObject objCube;                      //格子模型
         private string turnImgName;
         private TextMesh textMesh;
@@ -33,6 +35,7 @@ namespace Assets.PpsPro
         public bool IsTurn { get { return isTurn; } }
         public Vector2Int Center { get { return center; } }
         public EGridState GridState { get { return gridState; } }
+        public Vector3 Position { get { return position; } }
 
         public void Load(int id, int x, int y, GameObject parent)
         {
@@ -40,18 +43,20 @@ namespace Assets.PpsPro
             this.y = y;
             this.id = id;
             center = new Vector2Int(x, y);
+            position = new Vector3(x, 1, y);
             turnImgName = "55";
             stateImgeName = "11";
 
-            objCube = GameObject.Instantiate(Resources.Load("GridCube")) as GameObject;
-            if (objCube == null)
+            model = GameObject.Instantiate(Resources.Load("GridCube")) as GameObject;
+            if (model == null)
             {
                 Debug.LogError("GameObject 未加载到");
                 return;
             }
-            objCube.transform.parent = parent.transform;
-            objCube.transform.position = new Vector3(center.x, 0, center.y);
-            gridCube = objCube.transform.GetChild(0).GetComponent<GroudUnit>();
+            model.transform.parent = parent.transform;
+            model.transform.position = new Vector3(center.x, 0, center.y);
+            objCube = model.transform.GetChild(0).gameObject;
+            gridCube = objCube.transform.GetComponent<GroudUnit>();
             gridCube.ClickHandle += OnClickHandle;
             SetGridState(EGridState.EActive);
             InitExtendList();
@@ -67,7 +72,7 @@ namespace Assets.PpsPro
                 for (int j = y - 1; j <= y + 1; j++)
                 {
                     if (i == x && j == y) continue;
-                    BaseGrid unit = GridMapFuncs.GetGridUnitById(new Vector2(i, j));
+                    BaseGrid unit = GridMapFuncs.GetGridUnitById(new Vector2Int(i, j));
                     if (unit != null)
                     {
                         AddExtendUnit(unit);

@@ -71,47 +71,49 @@ namespace Assets.PpsPro
                     gridList[i].CheckIsTurn();
                 }
             }
-            for (int i = 0; i < rowList.Count; i++)
-            {
-                List<BaseGrid> list = rowList[i];
-                bool isBegin = false;
+            //for (int i = 0; i < rowList.Count; i++)
+            //{
+            //    List<BaseGrid> list = rowList[i];
+            //    bool isBegin = false;
 
-                for (int j = 0; j < list.Count; j++)
-                {
-                    BaseGrid grid = list[i];
-                    AreaLineCell cell = null;
-                    if (!isBegin && grid.GridState == EGridState.EActive)
-                    {
-                        isBegin = true;
-                        cell = new AreaLineCell();
-                        cell.Start(grid.ID);
-                    }
-                    else
-                    {
-                        if (isBegin)
-                        {
-                            cell.End(grid.ID);
-                        }
-                    }
-                }
-            }
+            //    for (int j = 0; j < list.Count; j++)
+            //    {
+            //        BaseGrid grid = list[i];
+            //        AreaLineCell cell = null;
+            //        if (!isBegin && grid.GridState == EGridState.EActive)
+            //        {
+            //            isBegin = true;
+            //            cell = new AreaLineCell();
+            //            cell.Start(grid.ID);
+            //        }
+            //        else
+            //        {
+            //            if (isBegin)
+            //            {
+            //                cell.End(grid.ID);
+            //            }
+            //        }
+            //    }
+            //}
         }
         public void Dispose()
         {
             UnRegisterEvent();
         }
 
+        //注册事件
         private void RegisterEvent()
         {
             GridMapFuncs.GetGridUnitById += GetGridUnitById;
             GridMapFuncs.TurnGrid += OnTurnGrid;
         }
-
+        //移除事件
         private void UnRegisterEvent()
         {
             GridMapFuncs.GetGridUnitById -= GetGridUnitById;
             GridMapFuncs.TurnGrid -= OnTurnGrid;
         }
+
         private BaseGrid GetGridUnitById(Vector2Int gridId)
         {
             BaseGrid unit = null;
@@ -155,14 +157,19 @@ namespace Assets.PpsPro
             int pos_y = Mathf.CeilToInt(t.position.z);
 
             int t_x = Mathf.CeilToInt(targetPos.x);
-            int t_y = Mathf.CeilToInt(targetPos.y);
+            int t_y = Mathf.CeilToInt(targetPos.z);
             BaseGrid grid;
             BaseGrid targetGrid;
             if (gridDic.TryGetValue(new Vector2Int(pos_x, pos_y), out grid))
             {
-                if (gridDic.TryGetValue(new Vector2Int(pos_x, pos_y), out targetGrid))
+                if (gridDic.TryGetValue(new Vector2Int(t_x, t_y), out targetGrid))
                 {
                     List<BaseGrid> list = MatchPath(grid, targetGrid);
+                    MoveItem item = new MoveItem();
+                    item.Path = list;
+                    item.Item = t;
+                    moveList.Add(item);
+                    return true;
                 }
             }
             return false;
@@ -170,39 +177,161 @@ namespace Assets.PpsPro
 
         public List<BaseGrid> MatchPath(BaseGrid begin, BaseGrid end)
         {
-            List<BaseGrid> gridList = new List<BaseGrid>();
-            List<Vector2Int> list = GridHelper.GetTouchedPosBetweenTwoPoints(begin.Center, end.Center);
-            for (int i = 0; i < list.Count; i++)
+            List<BaseGrid> passed = new List<BaseGrid>();
+            if (CanLinkEnd(begin, end))
             {
-                BaseGrid grid;
-                if (gridDic.TryGetValue(list[i], out grid))
-                {
-                    if (grid.GridState != EGridState.EActive) break;
-                    gridList.Add(grid);
-                    if (i == list.Count - 1) return gridList;
-                }
+                passed.Add(end);
+                return passed;
             }
-            gridList.Clear();
+            if (begin.IsTurn) passed.Add(begin);
+            //if (end.IsTurn) pathed.Add(end);
+            List<BaseGrid> pathed = new List<BaseGrid>();
+            //List<List<BaseGrid>> pathList = MatchTurnPoint(begin, end, pathed, ref passed);
+            List<List<BaseGrid>> pathList = new List<List<BaseGrid>>();
+            //// 最左侧寻路 -- 只找寻到了一条路
+            //MatchTurnPoint1(begin, end, pathed, ref passed, ref pathList);
+            MatchTurnPoint1(begin, end, passed, pathed, ref pathList);
+            if (pathList?.Count > 0)
+            {
+                List<BaseGrid> list = pathList[0];
+                for (int i = 1; i < pathList.Count; i++)
+                {
+                    list = GetNearestPath(list, pathList[i]);
+                }
+                return list;
+            }
             return null;
         }
-        public List<BaseGrid> MatchTurnPoint(BaseGrid begin, BaseGrid end)
+
+        private void MatchTurnPoint1(BaseGrid begin, BaseGrid end, List<BaseGrid> turns, List<BaseGrid> invailds, ref List<List<BaseGrid>> root)
         {
-            List<BaseGrid> connectList = new List<BaseGrid>();
-            for (int i = 0; i < turnList.Count; i++)
+            if (CanLinkEnd(end, begin))
             {
-                BaseGrid grid = turnList[i];
-                List<Vector2Int> list = GridHelper.GetTouchedPosBetweenTwoPoints(begin.Center, end.Center);
-                for (int j = 0; j < list.Count; j++)
+                turns.Add(end);
+                root.Add(turns);
+            }
+            else
+            {
+                List<BaseGrid> children = new List<BaseGrid>();
+
+                for (int i = 0; i < turnList.Count; i++)
                 {
-                    if (gridDic.TryGetValue(list[i], out grid))
+                    BaseGrid grid = turnList[i];
+                    if (turns.Contains(grid)) continue;
+                    if (invailds.Contains(grid)) continue;
+                    if (CanLinkEnd(begin, grid))
                     {
-                        if (grid.GridState != EGridState.EActive) break;
-                        if (i == list.Count - 1) connectList.Add(grid);
+                        //children.Add(grid);
+                        //turns.Add(grid);
+                        List<BaseGrid> recodeTurn = new List<BaseGrid>();
+                        recodeTurn.AddRange(turns);
+                        recodeTurn.Add(grid);
+                        MatchTurnPoint1(grid, end, recodeTurn, invailds, ref root);
+                        invailds.Add(grid);
                     }
                 }
-
             }
-            return connectList;
+        }
+        //// 最左侧寻路 -- 只找寻到了一条路
+        //private void MatchTurnPoint1(BaseGrid begin, BaseGrid end, List<BaseGrid> turns, ref List<BaseGrid> pathed, ref List<List<BaseGrid>> root)
+        //{
+        //    turns.Add(begin);
+        //    if (CanLinkEnd(end, begin))
+        //    {
+        //        turns.Add(end);
+        //        root.Add(turns);
+        //        return;
+        //    }
+        //    List<BaseGrid> children = new List<BaseGrid>();
+
+        //    for (int i = 0; i < turnList.Count; i++)
+        //    {
+        //        BaseGrid grid = turnList[i];
+        //        if (pathed.Contains(grid)) continue;
+        //        if (CanLinkEnd(begin, grid))
+        //        {
+        //            children.Add(grid);
+        //            pathed.Add(grid);
+        //        }
+        //    }
+
+        //    for (int i = 0; i < children.Count; i++)
+        //    {
+        //        List<BaseGrid> recodeTurn = new List<BaseGrid>();
+        //        recodeTurn.AddRange(turns);
+        //        MatchTurnPoint1(children[i], end, recodeTurn, ref pathed, ref root);
+        //    }
+        //}
+
+        private List<List<BaseGrid>> MatchTurnPoint(BaseGrid begin, BaseGrid end, List<BaseGrid> turns, ref List<BaseGrid> pathed)
+        {
+            turns.Add(begin);
+            pathed.Add(begin);
+
+            List<List<BaseGrid>> pathList = new List<List<BaseGrid>>();
+            if (CanLinkEnd(end, begin))
+            {
+                turns.Add(end);
+                pathList.Add(turns);
+                return pathList;
+            }
+            List<BaseGrid> children = new List<BaseGrid>();
+
+            for (int i = 0; i < turnList.Count; i++)
+            {
+                if (pathed.Contains(turnList[i])) continue;
+                if (CanLinkEnd(begin, turnList[i]))
+                {
+                    children.Add(turnList[i]);
+                    pathed.Add(turnList[i]);
+                }
+            }
+            for (int i = 0; i < children.Count; i++)
+            {
+                List<List<BaseGrid>> list = MatchTurnPoint(children[i], end, turns, ref pathed);
+                if (list == null) return null;
+                else pathList.AddRange(list);
+            }
+            return pathList;
+        }
+
+        public bool CanLinkEnd(BaseGrid begin, BaseGrid end)
+        {
+            List<Vector2Int> list = GridHelper.GetTouchedPosBetweenTwoPoints(begin.Center, end.Center);
+            if (list?.Count > 0)
+            {
+                for (int i = 0; i < list.Count; i++)
+                {
+                    BaseGrid grid;
+                    if (gridDic.TryGetValue(list[i], out grid))
+                    {
+                        if (grid.GridState != EGridState.EActive) return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        public List<BaseGrid> GetNearestPath(List<BaseGrid> list1, List<BaseGrid> list2)
+        {
+            float distance1 = GetPathLength(list1);
+            float distance2 = GetPathLength(list2);
+            return distance1 < distance2 ? list1 : list2;
+        }
+        private float GetPathLength(List<BaseGrid> path)
+        {
+            float distance = 0;
+            if (path?.Count > 1)
+            {
+                for (int i = 0; i < path.Count; i++)
+                {
+                    if (i <= path.Count - 2)
+                    {
+                        distance += Vector3.Distance(path[i].Position, path[i + 1].Position);
+                    }
+                }
+            }
+            return distance;
         }
     }
 }
