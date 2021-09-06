@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using UnityEngine;
 
 namespace Assets.PpsPro
@@ -8,7 +10,7 @@ namespace Assets.PpsPro
     public class GridMap
     {
         private Dictionary<Vector2Int, BaseGrid> gridDic;                               //所有格子字典
-        private List<BaseGrid> gridList;                                                //所有格子列表
+        private List<BaseGrid> gridList;                                                //所有格子列表 
         private Dictionary<int, Dictionary<Vector2Int, BaseGrid>> gridGroupDic;         //格子组字典 
         private Dictionary<Vector2Int, BaseGrid> turnDic;                               //拐点字典
         private List<BaseGrid> turnList;
@@ -190,6 +192,8 @@ namespace Assets.PpsPro
             List<List<BaseGrid>> pathList = new List<List<BaseGrid>>();
             //// 最左侧寻路 -- 只找寻到了一条路
             //MatchTurnPoint1(begin, end, pathed, ref passed, ref pathList);
+
+
             MatchTurnPoint1(begin, end, passed, pathed, ref pathList);
             if (pathList?.Count > 0)
             {
@@ -205,15 +209,39 @@ namespace Assets.PpsPro
 
         private void MatchTurnPoint1(BaseGrid begin, BaseGrid end, List<BaseGrid> turns, List<BaseGrid> invailds, ref List<List<BaseGrid>> root)
         {
+            Debug.Log($" _________________________________________________________________________________");
+            Debug.Log($" _________________________________________________________________________________");
+            Debug.Log($" _________________________________________________________________________________");
+
+            Debug.Log($" begin: {begin.Center}");
             if (CanLinkEnd(end, begin))
             {
                 turns.Add(end);
+                Debug.Log($" begin: {begin.Center} 可以到达B点");
+                string tEnd = "";
+                for (int i = 0; i < turns.Count; i++)
+                {
+                    tEnd += turns[i].Center.ToString() + "  ";
+                }
+                Debug.Log($" begin: {begin.Center} 连接到的拐点： { tEnd} ");
                 root.Add(turns);
             }
             else
             {
-                List<BaseGrid> children = new List<BaseGrid>();
+                List<BaseGrid> sameLvs = GetTurnsByGrid(begin);
+                string tLvs = "";
+                for (int i = 0; i < sameLvs.Count; i++)
+                {
+                    tLvs += sameLvs[i].Center.ToString() + "  ";
+                }
+                Debug.Log($" begin: {begin.Center} 连接到的拐点： { tLvs} ");
 
+                string tTurns = "";
+                for (int i = 0; i < turns.Count; i++)
+                {
+                    tTurns += turns[i].Center.ToString() + "  ";
+                }
+                Debug.Log($" begin: {begin.Center} 不可挑选都有： { tTurns} ");
                 for (int i = 0; i < turnList.Count; i++)
                 {
                     BaseGrid grid = turnList[i];
@@ -221,13 +249,15 @@ namespace Assets.PpsPro
                     if (invailds.Contains(grid)) continue;
                     if (CanLinkEnd(begin, grid))
                     {
+                        Debug.Log($" begin: {begin.Center} 向下检测到： { grid.Center.ToString()} ");
                         //children.Add(grid);
                         //turns.Add(grid);
                         List<BaseGrid> recodeTurn = new List<BaseGrid>();
                         recodeTurn.AddRange(turns);
+                        //recodeTurn.AddRange(sameLvs);
                         recodeTurn.Add(grid);
-                        MatchTurnPoint1(grid, end, recodeTurn, invailds, ref root);
-                        invailds.Add(grid);
+                        MatchTurnPoint1(grid, end, recodeTurn, sameLvs, ref root);
+                        //invailds.Add(grid);
                     }
                 }
             }
@@ -312,6 +342,20 @@ namespace Assets.PpsPro
             return true;
         }
 
+        private List<BaseGrid> GetTurnsByGrid(BaseGrid ori)
+        {
+            List<BaseGrid> list = new List<BaseGrid>();
+            for (int i = 0; i < turnList.Count; i++)
+            {
+                BaseGrid grid = turnList[i];
+                if (CanLinkEnd(ori, grid))
+                {
+                    list.Add(grid);
+                }
+            }
+            return list;
+        }
+
         public List<BaseGrid> GetNearestPath(List<BaseGrid> list1, List<BaseGrid> list2)
         {
             float distance1 = GetPathLength(list1);
@@ -332,6 +376,42 @@ namespace Assets.PpsPro
                 }
             }
             return distance;
+        }
+        private void ControlTurnPoints()
+        {
+
+        }
+
+        private void ControlEditorState()
+        {
+
+        }
+        public void SaveData(string mapName)
+        {
+
+            string filePath = Application.dataPath + "/PpsPro/Resources/Data/" + mapName + ".txt";
+            if (File.Exists(filePath))
+                File.Delete(filePath);
+
+            FileStream fs = new FileStream(filePath, FileMode.Create);
+            StringBuilder content = new StringBuilder();
+            //获得字节数组
+            for (int i = 0; i < gridList.Count; i++)
+            {
+                if (i == 0) content.Append("[");
+                BaseGrid grid = gridList[i];
+                content.Append($"[id:{grid.ID},center:{grid.Center},state:{(int)grid.GridState},isTurn:{grid.IsTurn}]\n");
+                if (i == gridList.Count - 1) content.Append("]");
+            }
+
+            byte[] data = System.Text.Encoding.Default.GetBytes(content.ToString());
+            //开始写入
+            fs.Write(data, 0, data.Length);
+            //清空缓冲区、关闭流
+            fs.Flush();
+            fs.Close();
+
+            Debug.Log(" save... ");
         }
     }
 }

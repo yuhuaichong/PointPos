@@ -118,6 +118,7 @@ namespace Assets.PpsPro
         private void TrunGrid(bool isTurn)
         {
             if (this.isTurn == isTurn) return;
+            this.isTurn = isTurn;
             LoadTexture(isTurn ? turnImgName : stateImgeName);
             GridMapFuncs.TurnGrid(this, isTurn);
         }

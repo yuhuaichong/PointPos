@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 4083869109070019509}
   - component: {fileID: 9070675268760686234}
   - component: {fileID: 1377568584863410096}
-  - component: {fileID: 2475226657227846038}
   - component: {fileID: 867373171}
   m_Layer: 0
   m_Name: ACube
@@ -69,7 +68,6 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -94,19 +92,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9a2a85220c2315c4388cfb11b748d7d2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &2475226657227846038
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2913811503510738308}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d0b148fe25e99eb48b9724523833bab1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Delegates: []
 --- !u!65 &867373171
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -177,7 +162,6 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
