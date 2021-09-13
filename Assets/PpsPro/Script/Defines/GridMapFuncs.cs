@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Assets.PpsPro
+namespace PpsPro
 {
     public static class GridMapFuncs
     {

@@ -3,54 +3,77 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using UnityEngine;
+using LitJson;
 
-namespace Assets.PpsPro
+namespace PpsPro
 {
     //格子地图
     public class GridMap
     {
-        private Dictionary<Vector2Int, BaseGrid> gridDic;                               //所有格子字典
+        private Dictionary<Vector2Int, BaseGrid> gridDic;                               //所有格子字典 
         private List<BaseGrid> gridList;                                                //所有格子列表 
         private Dictionary<int, Dictionary<Vector2Int, BaseGrid>> gridGroupDic;         //格子组字典 
         private Dictionary<Vector2Int, BaseGrid> turnDic;                               //拐点字典
         private List<BaseGrid> turnList;
-        private List<List<BaseGrid>> rowList;
         private List<MoveItem> moveList;
         public GameObject root;
         private int len;
         private int width;
 
-        public void Load(int length, int width, GameObject root)
+        public GameObject Root { get { return root; } }
+
+        public void Init()
+        {
+            root = new GameObject("root");
+            InitCacheList();
+            RegisterEvent();
+        }
+
+        public void Load(string name)
+        {
+
+            //[id:0,center:(0, 0),state:0,isTurn:False]
+            TextAsset text = Resources.Load<TextAsset>($"Data/{name}");
+            JsonData data = JsonMapper.ToObject(text.text);
+
+            for (int i = 0; i < data.Count; i++)
+            {
+                JsonData gridData = data[i];
+                BaseGrid grid = new BaseGrid();
+                int id = 0;
+                int.TryParse(gridData["id"].ToString(), out id);
+
+                int x = 0;
+                int.TryParse(gridData["posx"].ToString(), out x);
+                int y = 0;
+                int.TryParse(gridData["posy"].ToString(), out y);
+
+                int state;
+                int.TryParse(gridData["state"].ToString(), out state);
+                EGridState gridState = (EGridState)state;
+                bool isTurn = false;
+                bool.TryParse(gridData["isTurn"].ToString(), out isTurn);
+                grid.Load(id, x, y);
+                grid.SetGridState(gridState);
+                grid.SetParent(root.transform);
+                AddGrid(grid);
+            }
+        }
+
+        private void InitCacheList()
         {
             turnList = new List<BaseGrid>();
             moveList = new List<MoveItem>();
             turnDic = new Dictionary<Vector2Int, BaseGrid>();
-            this.len = length;
-            this.width = width;
-            this.root = root;
-            RegisterEvent();
             gridList = new List<BaseGrid>();
             gridDic = new Dictionary<Vector2Int, BaseGrid>();
-            int oriId = 0;
-            for (int i = 0; i < len; i++)
-            {
-                rowList = new List<List<BaseGrid>>();
-                List<BaseGrid> tempList = new List<BaseGrid>();
-                for (int j = 0; j < width; j++)
-                {
-                    BaseGrid grid = new BaseGrid();
-                    grid.Load(oriId, i, j, root);
-                    gridList.Add(grid);
-                    gridDic.Add(grid.Center, grid);
-                    oriId++;
-                    tempList.Add(grid);
-                }
-                rowList.Add(tempList);
-            }
-
         }
+
         public void Update()
         {
+            if (Input.GetKeyDown(KeyCode.K))
+                UpdateData();
+
             if (moveList?.Count > 0)
             {
                 for (int i = 0; i < moveList.Count; i++)
@@ -114,6 +137,12 @@ namespace Assets.PpsPro
         {
             GridMapFuncs.GetGridUnitById -= GetGridUnitById;
             GridMapFuncs.TurnGrid -= OnTurnGrid;
+        }
+
+        public void AddGrid(BaseGrid grid)
+        {
+            gridList.Add(grid);
+            gridDic.Add(grid.Center, grid);
         }
 
         private BaseGrid GetGridUnitById(Vector2Int gridId)
@@ -388,22 +417,48 @@ namespace Assets.PpsPro
         }
         public void SaveData(string mapName)
         {
-
+            UpdateData();
             string filePath = Application.dataPath + "/PpsPro/Resources/Data/" + mapName + ".txt";
             if (File.Exists(filePath))
                 File.Delete(filePath);
 
             FileStream fs = new FileStream(filePath, FileMode.Create);
-            StringBuilder content = new StringBuilder();
+
+
+            JsonWriter jw = new JsonWriter();
+            jw.WriteArrayStart();//json里面的中括号
+
+            //StringBuilder content = new StringBuilder();
+            //content.Append("[");
             //获得字节数组
             for (int i = 0; i < gridList.Count; i++)
             {
-                if (i == 0) content.Append("[");
                 BaseGrid grid = gridList[i];
-                content.Append($"[id:{grid.ID},center:{grid.Center},state:{(int)grid.GridState},isTurn:{grid.IsTurn}]\n");
-                if (i == gridList.Count - 1) content.Append("]");
-            }
+                //content.Append("{");
+                //content.Append($"'id':{grid.ID},'center':{grid.Center},'state':{(int)grid.GridState},'isTurn':{grid.IsTurn}");
+                //content.Append("}");
 
+                jw.WriteObjectStart();//json里面的花括号
+                jw.WritePropertyName("id");
+                jw.Write(grid.ID);
+
+                jw.WritePropertyName("posx");
+                jw.Write(grid.Center.x);
+
+                jw.WritePropertyName("posy");
+                jw.Write(grid.Center.y);
+
+                jw.WritePropertyName("state");
+                jw.Write((int)grid.GridState);
+
+                jw.WritePropertyName("isTurn");
+                jw.Write(grid.IsTurn);
+                jw.WriteObjectEnd();//花括号括回去
+            }
+            jw.WriteArrayEnd(); //中括号括回去
+
+            string content = jw.ToString();
+            //content.Append("]");           
             byte[] data = System.Text.Encoding.Default.GetBytes(content.ToString());
             //开始写入
             fs.Write(data, 0, data.Length);

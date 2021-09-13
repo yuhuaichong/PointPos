@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 
 
-namespace Assets.PpsPro.Script.Map
+namespace PpsPro
 {
     public class PathMatcher
     {

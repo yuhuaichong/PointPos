@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Assets.PpsPro
+namespace PpsPro
 {
     public class MoveItem
     {

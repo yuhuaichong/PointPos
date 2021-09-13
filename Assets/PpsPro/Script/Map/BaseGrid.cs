@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-namespace Assets.PpsPro
+namespace PpsPro
 {
     public class BaseGrid
     {
@@ -37,7 +37,7 @@ namespace Assets.PpsPro
         public EGridState GridState { get { return gridState; } }
         public Vector3 Position { get { return position; } }
 
-        public void Load(int id, int x, int y, GameObject parent)
+        public void Load(int id, int x, int y)
         {
             this.x = x;
             this.y = y;
@@ -53,13 +53,17 @@ namespace Assets.PpsPro
                 Debug.LogError("GameObject 未加载到");
                 return;
             }
-            model.transform.parent = parent.transform;
             model.transform.position = new Vector3(center.x, 0, center.y);
             objCube = model.transform.GetChild(0).gameObject;
             gridCube = objCube.transform.GetComponent<GroudUnit>();
             gridCube.ClickHandle += OnClickHandle;
             SetGridState(EGridState.EActive);
             InitExtendList();
+        }
+
+        public void SetParent(Transform parent)
+        {
+            model.transform.parent = parent;
         }
 
         private void InitExtendList()
