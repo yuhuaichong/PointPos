@@ -54,5 +54,6 @@ public class tpMapComponentEditor : Editor
     {
         MapTool tool = cmd.context as MapTool;
         tool?.SaveData();
+        AssetDatabase.Refresh();
     }
 }

@@ -79,6 +79,8 @@
     <Compile Include="Assets\PpsPro\Script\Scene\BaseScene.cs" />
     <Compile Include="Assets\PpsPro\Script\Utils\Defines.cs" />
     <None Include="Assets\PpsPro\Resources\Data\Map.txt" />
+    <None Include="Assets\PpsPro\Resources\Data\map30.txt" />
+    <None Include="Assets\PpsPro\Resources\Data\map20.txt" />
     <Reference Include="Unity.Timeline.Editor">
       <HintPath>E:/Project/PointPos/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
     </Reference>

@@ -11,6 +11,7 @@ namespace PpsPro
 
         private string mapLen;
         private string mapWid;
+        private string mapName;
 
         private bool isEditor;
         private bool isShowTP;
@@ -27,6 +28,8 @@ namespace PpsPro
 
         private void LoadMap(int length, int width)
         {
+            gridMap = new GridMap();
+            gridMap.Init();
             int oriId = 0;
             for (int i = 0; i < length; i++)
             {
@@ -49,7 +52,7 @@ namespace PpsPro
         }
         public void SaveData()
         {
-            gridMap.SaveData("Map");
+            gridMap.SaveData(mapName);
         }
         void OnDestroy()
         {
@@ -59,21 +62,24 @@ namespace PpsPro
         private void OnGUI()
         {
 
-            if(!showGroup)GUI.Label(new Rect(10, 10, 130, 30), "按E打开地图编辑面板");
+            if(!showGroup)GUI.Label(new Rect(10, 10, 200, 30), "Press 'E' open map edit panel.");
 
             GUI.BeginGroup(new Rect(group_x, 10, 300, 120));
-            GUI.Box(new Rect(0, 0, 300, 120), "地图编辑区域");
+            GUI.Box(new Rect(0, 0, 300, 120), "MapEditor");
 
-            GUI.Label(new Rect(20, 35, 80, 25), "地图的长度：");
-            mapLen = GUI.TextField(new Rect(110, 35, 60, 25), mapLen);
+            GUI.Label(new Rect(10, 25, 70, 25), "Map Name:");
+            mapName = GUI.TextField(new Rect(80, 25, 60, 25), mapName);
 
-            GUI.Label(new Rect(20, 75, 80, 25), "地图的宽度：");
-            mapWid = GUI.TextField(new Rect(110, 75, 60, 25), mapWid);
+            GUI.Label(new Rect(10, 60, 60, 25), "Map len:");
+            mapLen = GUI.TextField(new Rect(75, 60, 60, 25), mapLen);
+
+            GUI.Label(new Rect(150, 60, 60, 25), "Map wid:");
+            mapWid = GUI.TextField(new Rect(215, 60, 60, 25), mapWid);
 
             //GUI.Label(new Rect(20, 75, 80, 35), "显示拐点：");
             //GUI.Label(new Rect(110, 75, 80, 35), isShowTP ? "开启中" : "关闭中");
             //if (GUI.Button(new Rect(200, 75, 80, 30), ">>> 切换 >>>")) isShowTP = !isShowTP;
-            if (GUI.Button(new Rect(200, 75, 80, 25), ">>> 加载 >>>"))
+            if (GUI.Button(new Rect(200, 90, 80, 25), "--- Load ---"))
             {
                 int len, wid;
                 if (string.IsNullOrEmpty(mapLen) || string.IsNullOrEmpty(mapWid))
