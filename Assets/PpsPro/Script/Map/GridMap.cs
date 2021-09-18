@@ -15,7 +15,7 @@ namespace PpsPro
         private Dictionary<int, Dictionary<Vector2Int, BaseGrid>> gridGroupDic;         //格子组字典 
         private Dictionary<Vector2Int, BaseGrid> turnDic;                               //拐点字典
         private List<BaseGrid> turnList;
-        private List<MoveItem> moveList;
+        private List<MoveComponent> moveList;
         public GameObject root;
         private int len;
         private int width;
@@ -63,7 +63,7 @@ namespace PpsPro
         private void InitCacheList()
         {
             turnList = new List<BaseGrid>();
-            moveList = new List<MoveItem>();
+            moveList = new List<MoveComponent>();
             turnDic = new Dictionary<Vector2Int, BaseGrid>();
             gridList = new List<BaseGrid>();
             gridDic = new Dictionary<Vector2Int, BaseGrid>();
@@ -196,7 +196,7 @@ namespace PpsPro
                 if (gridDic.TryGetValue(new Vector2Int(t_x, t_y), out targetGrid))
                 {
                     List<BaseGrid> list = MatchPath(grid, targetGrid);
-                    MoveItem item = new MoveItem();
+                    MoveComponent item = new MoveComponent();
                     item.Path = list;
                     item.Item = t;
                     moveList.Add(item);

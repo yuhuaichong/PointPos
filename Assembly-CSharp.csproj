@@ -63,8 +63,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\PpsPro\Script\Actor\BaseActor.cs" />
+    <Compile Include="Assets\PpsPro\Script\CameraModule.cs" />
+    <Compile Include="Assets\PpsPro\Script\Components\BaseComponent.cs" />
     <Compile Include="Assets\PpsPro\Script\Defines\GridMapFuncs.cs" />
     <Compile Include="Assets\PpsPro\Script\InterFace\IObject.cs" />
+    <Compile Include="Assets\PpsPro\Script\Level\LevelData.cs" />
     <Compile Include="Assets\PpsPro\Script\Main.cs" />
     <Compile Include="Assets\PpsPro\Script\Map\AreaLineCell.cs" />
     <Compile Include="Assets\PpsPro\Script\Map\BaseGrid.cs" />
@@ -72,13 +75,14 @@
     <Compile Include="Assets\PpsPro\Script\Map\GridHelper.cs" />
     <Compile Include="Assets\PpsPro\Script\Map\GridMap.cs" />
     <Compile Include="Assets\PpsPro\Script\Map\GroudUnit.cs" />
-    <Compile Include="Assets\PpsPro\Script\Map\MoveItem.cs" />
+    <Compile Include="Assets\PpsPro\Script\Map\MoveComponent.cs" />
     <Compile Include="Assets\PpsPro\Script\Map\PathMatcher.cs" />
     <Compile Include="Assets\PpsPro\Script\MapTool.cs" />
     <Compile Include="Assets\PpsPro\Script\PointModule.cs" />
     <Compile Include="Assets\PpsPro\Script\Scene\BaseScene.cs" />
     <Compile Include="Assets\PpsPro\Script\Utils\Defines.cs" />
     <None Include="Assets\PpsPro\Resources\Data\Map.txt" />
+    <None Include="Assets\PpsPro\Resources\Data\map-30.txt" />
     <None Include="Assets\PpsPro\Resources\Data\map30.txt" />
     <None Include="Assets\PpsPro\Resources\Data\map20.txt" />
     <Reference Include="Unity.Timeline.Editor">

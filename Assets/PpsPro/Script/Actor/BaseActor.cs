@@ -1,35 +1,65 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
-public class BaseActor 
+namespace PpsPro
 {
-    private GameObject model;
-    private Transform transform;
-    private Vector3 position;
-    private Vector3 targetPos;
-
-
-    public Transform _Transform { get { return transform; } }
-    public Vector3 Position { get { return transform.position; } }
-    public void Load()
+    public class BaseActor
     {
-        model = GameObject.Instantiate(Resources.Load("Role")) as GameObject;
-        transform = model.transform;
-        transform.position = new Vector3(5, .5f, 5);
-        targetPos = transform.position;
-    }
+        private GameObject model;
+        private Transform transform;
+        private MoveComponent moveCom;
+        private Vector3 position;
+        private Vector3 targetPos;
 
-    public void Update()
-    {
-        if (Vector3.Distance(targetPos,Position) > .1f)
+        public BaseActor Target;
+
+
+        public Transform _Transform { get { return transform; } }
+        public Vector3 Position
         {
-            Move();
+            get { return transform.position; }
+            set { transform.position = value; }
         }
-    }
+        public void Load(string actorName)
+        {
+            LoadModel(actorName);
+        }
 
-    public void Move()
-    {
+        protected virtual void LoadModel(string actorName)
+        {
+            model = GameObject.Instantiate(Resources.Load(actorName)) as GameObject;
+            transform = model.transform;
+            transform.position = new Vector3(5, .5f, 5);
+            targetPos = transform.position;
+        }
 
+        protected virtual void LoadComponent()
+        {
+            moveCom = new MoveComponent();
+            moveCom.Load(this);
+        }
+
+
+        public void MoveTo()
+        {
+            if (Target != null) MoveTo(Target.position);
+        }
+
+        public void MoveTo(BaseActor actor)
+        {
+            if (actor != null) MoveTo(Target.position);
+        }
+
+        //角色移动接口
+        public void MoveTo(Vector3 targetPos)
+        {
+            if (moveCom == null) return;
+            moveCom.MoveTo(targetPos);
+        }
+
+        //设置出生位置
+        public void SetBirthPosition(Vector3 pos)
+        {
+            if (transform != null) transform.position = pos;
+        }
     }
 }

@@ -4,22 +4,31 @@ using UnityEngine;
 
 namespace PpsPro
 {
-    public class BaseScene : IObject
+    public class BaseScene
     {
-        protected BaseActor role;
-        private GridMap gridMap;
-        private bool isGo = true;
+        private GridMap gridMap;                           //地图数据
+        private LevelData levelData;                       //关卡数据
+        protected BaseActor role;                          //主角
+        protected BaseActor monster;
 
         public BaseActor Role { get { return role; } }
 
-        public void Load() { OnLoad(); }
+        public void Load(LevelData data)
+        {
+            levelData = data;
+            OnLoad();
+        }
         protected virtual void OnLoad()
         {
             gridMap = new GridMap();
             gridMap.Init();
-            gridMap.Load("Map");
+            gridMap.Load(levelData.MapName);
             role = new BaseActor();
-            role.Load();
+            role.Load("Role");
+            role.SetBirthPosition(levelData.birthPosList[0]);
+            monster = new BaseActor();
+            monster.Load("Target");
+            monster.SetBirthPosition(new Vector3(18, 1, 18));
         }
         public void Dispose() { OnDispose(); }
         protected virtual void OnDispose()
@@ -31,9 +40,8 @@ namespace PpsPro
         {
             if (Input.GetKeyDown(KeyCode.H))
             {
-                Vector3 targetPos = isGo ? new Vector3(27, 0, 27) : new Vector3(5, 0, 5);
-                isGo = !isGo;
-                gridMap.MoveTo(Role._Transform, targetPos);
+                //gridMap.MoveTo(Role._Transform, monster.Position);
+                Role.MoveTo(monster.Position);
             }
             gridMap.Update();
             OnUpdate();
