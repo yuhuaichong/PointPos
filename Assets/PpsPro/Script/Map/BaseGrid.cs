@@ -20,6 +20,12 @@ namespace PpsPro
         //private List<bool> rectState;
         private Vector3 position;
 
+        //分散
+        private int standCount;
+        private List<Vector3> standPos;
+        private bool canStand;
+        private Vector3 stayPos;
+
 
         #region 显示相关
 
@@ -37,11 +43,14 @@ namespace PpsPro
         public EGridState GridState { get { return gridState; } }
         public Vector3 Position { get { return position; } }
 
-        public void Load(int id, int x, int y)
+        public bool CanStand { get { return canStand; } }
+
+        public void Load(int id, int x, int y, bool isTurn)
         {
             this.x = x;
             this.y = y;
             this.id = id;
+            this.isTurn = isTurn;
             center = new Vector2Int(x, y);
             position = new Vector3(x, 1, y);
             turnImgName = "55";
@@ -88,6 +97,15 @@ namespace PpsPro
                 }
             }
         }
+
+        private void InitStandPos()
+        {
+            standPos = new List<Vector3>();
+            standPos.Add(new Vector3(x - .25f, 1, y - .25f));
+            standPos.Add(new Vector3(x + .25f, 1, y - .25f));
+            standPos.Add(new Vector3(x - .25f, 1, y + .25f));
+            standPos.Add(new Vector3(x + .25f, 1, y + .25f));
+        }
         //设置组ID
         public void SetGroupId(int groupId)
         {
@@ -123,7 +141,6 @@ namespace PpsPro
         {
             if (this.isTurn == isTurn) return;
             this.isTurn = isTurn;
-            LoadTexture(isTurn ? turnImgName : stateImgeName);
             GridMapFuncs.TurnGrid(this, isTurn);
         }
 
@@ -172,6 +189,13 @@ namespace PpsPro
             objCube.GetComponent<MeshRenderer>().materials[0].mainTexture = (Texture)(Resources.Load($"ImgCube/{imgName}"));
         }
 
+        public void ShowTurnPoint(bool isShow)
+        {
+            string imgName = isShow ? turnImgName : stateImgeName;
+            if (isTurn)
+                objCube.GetComponent<MeshRenderer>().materials[0].mainTexture = (Texture)(Resources.Load($"ImgCube/{imgName}"));
+        }
+
         private void AddRectPoint(BaseGrid unit)
         {
             if (unit == null) return;
@@ -195,5 +219,20 @@ namespace PpsPro
             if (unit.Center.x < x && unit.y < y) index = 3;
             intersList[index] = unit;
         }
+
+        public Vector3 GetStandPos()
+        {
+            return Vector3.zero;
+        }
+
+        private void Enter(BaseActor actor)
+        {
+            standCount ++;
+        }
+        private void Exit(BaseActor actor)
+        {
+
+        }
+
     }
 }

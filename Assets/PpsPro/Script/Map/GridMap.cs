@@ -53,7 +53,8 @@ namespace PpsPro
                 EGridState gridState = (EGridState)state;
                 bool isTurn = false;
                 bool.TryParse(gridData["isTurn"].ToString(), out isTurn);
-                grid.Load(id, x, y);
+                grid.Load(id, x, y, isTurn);
+                if (isTurn) OnTurnGrid(grid, isTurn);
                 grid.SetGridState(gridState);
                 grid.SetParent(root.transform);
                 AddGrid(grid);
@@ -73,18 +74,6 @@ namespace PpsPro
         {
             if (Input.GetKeyDown(KeyCode.K))
                 UpdateData();
-
-            if (moveList?.Count > 0)
-            {
-                for (int i = 0; i < moveList.Count; i++)
-                {
-                    if (!moveList[i].MoveTo())
-                    {
-                        moveList.RemoveAt(i);
-                        i--;
-                    }
-                }
-            }
         }
         public void UpdateData()
         {
@@ -130,13 +119,17 @@ namespace PpsPro
         private void RegisterEvent()
         {
             GridMapFuncs.GetGridUnitById += GetGridUnitById;
+            GridMapFuncs.GetGridPath += GetGridPath;
             GridMapFuncs.TurnGrid += OnTurnGrid;
+            GridMapFuncs.ShowTurnGrid += OnShowTurnGrid;
         }
         //移除事件
         private void UnRegisterEvent()
         {
             GridMapFuncs.GetGridUnitById -= GetGridUnitById;
+            GridMapFuncs.GetGridPath -= GetGridPath;
             GridMapFuncs.TurnGrid -= OnTurnGrid;
+            GridMapFuncs.ShowTurnGrid -= OnShowTurnGrid;
         }
 
         public void AddGrid(BaseGrid grid)
@@ -182,29 +175,32 @@ namespace PpsPro
             turnList.Remove(grid);
         }
 
-        public bool MoveTo(Transform t, Vector3 targetPos)
+        private List<BaseGrid> GetGridPath(Vector3 originPos, Vector3 targetPos)
         {
-            int pos_x = Mathf.CeilToInt(t.position.x);
-            int pos_y = Mathf.CeilToInt(t.position.z);
-
-            int t_x = Mathf.CeilToInt(targetPos.x);
-            int t_y = Mathf.CeilToInt(targetPos.z);
-            BaseGrid grid;
-            BaseGrid targetGrid;
-            if (gridDic.TryGetValue(new Vector2Int(pos_x, pos_y), out grid))
+            BaseGrid grid = GetGridByPos(originPos);
+            BaseGrid targetGrid = GetGridByPos(targetPos);
+            if (grid != null && targetGrid != null)
             {
-                if (gridDic.TryGetValue(new Vector2Int(t_x, t_y), out targetGrid))
-                {
-                    List<BaseGrid> list = MatchPath(grid, targetGrid);
-                    MoveComponent item = new MoveComponent();
-                    item.Path = list;
-                    item.Item = t;
-                    moveList.Add(item);
-                    return true;
-                }
+                Debug.Log($"originPos: {originPos} grid : {grid.Center}");
+                List<BaseGrid> list = MatchPath(grid, targetGrid);
+                return list;
             }
-            return false;
+            return null;
         }
+
+        private List<BaseGrid> GetNearestGridPath(Vector3 originPos, Vector3 targetPos)
+        {
+            BaseGrid grid = GetGridByPos(originPos);
+            BaseGrid targetGrid = GetGridByPos(targetPos);
+            if (grid != null && targetGrid != null)
+            {
+                Debug.Log($"originPos: {originPos} grid : {grid.Center}");
+                List<BaseGrid> list = MatchPath(grid, targetGrid);
+                return list;
+            }
+            return null;
+        }
+
 
         public List<BaseGrid> MatchPath(BaseGrid begin, BaseGrid end)
         {
@@ -215,15 +211,11 @@ namespace PpsPro
                 return passed;
             }
             if (begin.IsTurn) passed.Add(begin);
-            //if (end.IsTurn) pathed.Add(end);
             List<BaseGrid> pathed = new List<BaseGrid>();
-            //List<List<BaseGrid>> pathList = MatchTurnPoint(begin, end, pathed, ref passed);
             List<List<BaseGrid>> pathList = new List<List<BaseGrid>>();
-            //// 最左侧寻路 -- 只找寻到了一条路
-            //MatchTurnPoint1(begin, end, pathed, ref passed, ref pathList);
 
 
-            MatchTurnPoint1(begin, end, passed, pathed, ref pathList);
+            MatchTurnPoint(begin, end, passed, pathed, 0, ref pathList);
             if (pathList?.Count > 0)
             {
                 List<BaseGrid> list = pathList[0];
@@ -236,91 +228,59 @@ namespace PpsPro
             return null;
         }
 
-        private void MatchTurnPoint1(BaseGrid begin, BaseGrid end, List<BaseGrid> turns, List<BaseGrid> invailds, ref List<List<BaseGrid>> root)
+        private void MatchTurnPoint(BaseGrid begin, BaseGrid end, List<BaseGrid> turns, List<BaseGrid> invailds, int index, ref List<List<BaseGrid>> root)
         {
-            Debug.Log($" _________________________________________________________________________________");
-            Debug.Log($" _________________________________________________________________________________");
-            Debug.Log($" _________________________________________________________________________________");
-
+            //Debug.Log($" _________________________________________________________________________________");
+            //Debug.Log($" _________________________________________________________________________________");
+            //Debug.Log($" _________________________________________________________________________________");
+            if (index >= 10) return;
             Debug.Log($" begin: {begin.Center}");
             if (CanLinkEnd(end, begin))
             {
                 turns.Add(end);
                 Debug.Log($" begin: {begin.Center} 可以到达B点");
-                string tEnd = "";
-                for (int i = 0; i < turns.Count; i++)
-                {
-                    tEnd += turns[i].Center.ToString() + "  ";
-                }
-                Debug.Log($" begin: {begin.Center} 连接到的拐点： { tEnd} ");
+                //string tEnd = "";
+                //for (int i = 0; i < turns.Count; i++)
+                //{
+                //    tEnd += turns[i].Center.ToString() + "  ";
+                //}
+                //Debug.Log($" begin: {begin.Center} 连接到的拐点： { tEnd} ");
                 root.Add(turns);
             }
             else
             {
                 List<BaseGrid> sameLvs = GetTurnsByGrid(begin);
-                string tLvs = "";
+                //string tLvs = "";
+                //for (int i = 0; i < sameLvs.Count; i++)
+                //{
+                //    tLvs += sameLvs[i].Center.ToString() + "  ";
+                //}
+                //Debug.Log($" begin: {begin.Center} 连接到的拐点： { tLvs} ");
+
+                //string tTurns = "";
+                //for (int i = 0; i < turns.Count; i++)
+                //{
+                //    tTurns += turns[i].Center.ToString() + "  ";
+                //}
+                //Debug.Log($" begin: {begin.Center} 不可挑选都有： { tTurns} ");
                 for (int i = 0; i < sameLvs.Count; i++)
                 {
-                    tLvs += sameLvs[i].Center.ToString() + "  ";
-                }
-                Debug.Log($" begin: {begin.Center} 连接到的拐点： { tLvs} ");
-
-                string tTurns = "";
-                for (int i = 0; i < turns.Count; i++)
-                {
-                    tTurns += turns[i].Center.ToString() + "  ";
-                }
-                Debug.Log($" begin: {begin.Center} 不可挑选都有： { tTurns} ");
-                for (int i = 0; i < turnList.Count; i++)
-                {
-                    BaseGrid grid = turnList[i];
+                    BaseGrid grid = sameLvs[i];
                     if (turns.Contains(grid)) continue;
                     if (invailds.Contains(grid)) continue;
-                    if (CanLinkEnd(begin, grid))
+                    //if (CanLinkEnd(begin, grid))
                     {
                         Debug.Log($" begin: {begin.Center} 向下检测到： { grid.Center.ToString()} ");
-                        //children.Add(grid);
-                        //turns.Add(grid);
                         List<BaseGrid> recodeTurn = new List<BaseGrid>();
                         recodeTurn.AddRange(turns);
-                        //recodeTurn.AddRange(sameLvs);
                         recodeTurn.Add(grid);
-                        MatchTurnPoint1(grid, end, recodeTurn, sameLvs, ref root);
+                        index++;
+                        MatchTurnPoint(grid, end, recodeTurn, sameLvs, index, ref root);
                         //invailds.Add(grid);
                     }
                 }
             }
         }
-        //// 最左侧寻路 -- 只找寻到了一条路
-        //private void MatchTurnPoint1(BaseGrid begin, BaseGrid end, List<BaseGrid> turns, ref List<BaseGrid> pathed, ref List<List<BaseGrid>> root)
-        //{
-        //    turns.Add(begin);
-        //    if (CanLinkEnd(end, begin))
-        //    {
-        //        turns.Add(end);
-        //        root.Add(turns);
-        //        return;
-        //    }
-        //    List<BaseGrid> children = new List<BaseGrid>();
-
-        //    for (int i = 0; i < turnList.Count; i++)
-        //    {
-        //        BaseGrid grid = turnList[i];
-        //        if (pathed.Contains(grid)) continue;
-        //        if (CanLinkEnd(begin, grid))
-        //        {
-        //            children.Add(grid);
-        //            pathed.Add(grid);
-        //        }
-        //    }
-
-        //    for (int i = 0; i < children.Count; i++)
-        //    {
-        //        List<BaseGrid> recodeTurn = new List<BaseGrid>();
-        //        recodeTurn.AddRange(turns);
-        //        MatchTurnPoint1(children[i], end, recodeTurn, ref pathed, ref root);
-        //    }
-        //}
 
         private List<List<BaseGrid>> MatchTurnPoint(BaseGrid begin, BaseGrid end, List<BaseGrid> turns, ref List<BaseGrid> pathed)
         {
@@ -413,6 +373,25 @@ namespace PpsPro
 
         private void ControlEditorState()
         {
+
+        }
+
+        private BaseGrid GetGridByPos(Vector3 pos)
+        {
+            BaseGrid grid;
+            int pos_x = Mathf.FloorToInt(pos.x);
+            int pos_y = Mathf.FloorToInt(pos.z);
+            gridDic.TryGetValue(new Vector2Int(pos_x, pos_y), out grid);
+            return grid;
+        }
+
+        //显示拐点格子
+        private void OnShowTurnGrid(bool isShow)
+        {
+            for (int i = 0; i < gridList.Count; i++)
+            {
+                gridList[i].ShowTurnPoint(isShow);
+            }
 
         }
         public void SaveData(string mapName)

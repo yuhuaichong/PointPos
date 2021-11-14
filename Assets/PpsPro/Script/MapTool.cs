@@ -16,7 +16,7 @@ namespace PpsPro
         private bool isEditor;
         private bool isShowTP;
         private bool showGroup;
-        private float group_x,initGroup_x,targetGroup_x;
+        private float group_x, initGroup_x, targetGroup_x;
 
 
         void Start()
@@ -37,7 +37,7 @@ namespace PpsPro
                 for (int j = 0; j < width; j++)
                 {
                     BaseGrid grid = new BaseGrid();
-                    grid.Load(oriId, i, j);
+                    grid.Load(oriId, i, j, false);
                     grid.SetParent(root.transform);
                     gridMap.AddGrid(grid);
                     oriId++;
@@ -62,7 +62,7 @@ namespace PpsPro
         private void OnGUI()
         {
 
-            if(!showGroup)GUI.Label(new Rect(10, 10, 200, 30), "Press 'E' open map edit panel.");
+            if (!showGroup) GUI.Label(new Rect(10, 10, 200, 30), "Press 'E' open map edit panel.");
 
             GUI.BeginGroup(new Rect(group_x, 10, 300, 120));
             GUI.Box(new Rect(0, 0, 300, 120), "MapEditor");
@@ -87,16 +87,16 @@ namespace PpsPro
                     Debug.LogError("[error]: 地图尺寸未设置");
                     return;
                 }
-                if (int.TryParse (mapLen,out len) && int.TryParse(mapWid,out wid))
+                if (int.TryParse(mapLen, out len) && int.TryParse(mapWid, out wid))
                 {
                     LoadMap(len, wid);
                     return;
                 }
-                    Debug.LogError("[error]: 地图尺寸输入不规范");
+                Debug.LogError("[error]: 地图尺寸输入不规范");
             }
 
             GUI.EndGroup();
-            
+
         }
     }
 }

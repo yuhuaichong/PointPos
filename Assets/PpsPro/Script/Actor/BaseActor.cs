@@ -22,6 +22,7 @@ namespace PpsPro
         public void Load(string actorName)
         {
             LoadModel(actorName);
+            LoadComponent();
         }
 
         protected virtual void LoadModel(string actorName)
@@ -38,15 +39,15 @@ namespace PpsPro
             moveCom.Load(this);
         }
 
+        public void Update() { OnUpdate(); }
+        protected virtual void OnUpdate()
+        {
+            moveCom?.Update();
+        }
 
         public void MoveTo()
         {
             if (Target != null) MoveTo(Target.position);
-        }
-
-        public void MoveTo(BaseActor actor)
-        {
-            if (actor != null) MoveTo(Target.position);
         }
 
         //角色移动接口

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace PpsPro
 {
+    //组件基类
     public class BaseComponent
     {
         protected BaseActor owner;
@@ -11,20 +12,12 @@ namespace PpsPro
         public void Load(BaseActor actor)
         {
             owner = actor;
+            OnLoad();
         }
-
-        protected virtual void OnLoad()
-        {
-
-        }
-
-        public void Dispose()
-        {
-
-        }
-        protected virtual void OnDispose()
-        {
-
-        }
+        protected virtual void OnLoad(){}
+        public void Dispose(){ OnDispose(); }
+        protected virtual void OnDispose(){}
+        public void Update() { OnUpdate(); }
+        protected virtual void OnUpdate() { }
     }
 }

@@ -12,3 +12,12 @@ public enum EGridState
     EGround,              //草地
     EFull,                //满载
 }
+
+public enum EMoveState
+{
+    EStop,                //停止
+    EMoving,              //移动
+    EPause,               //暂停
+    EChoke,               //被阻塞
+    EBreak,               //断开
+}
